@@ -1,17 +1,21 @@
 'use strict';
 
-exports.http = (request, response) => {
+exports.getBeer = (request, response) => {
   getRamdomBeer()
     .then((beer)=>{
       response.status(200).send({
         message:'Hello BeerJS Cordoba!',
-        ramdomBeer: beer
+        data: beer,
+        status: 'success'
       });
     })
     .catch((err)=>{
       console.error(err);
-      response.status(200).send({error: err});
-    });
+      response.status(200).send({
+        message: err,
+        status: 'error'
+      });
+  });
 };
 
 exports.event = (event, callback) => {
@@ -26,21 +30,27 @@ function getRamdomBeer () {
       hostname: 'api.brewerydb.com',
       port: 80,
       path: '/v2/beer/random?key=eb11f22b0b2d86ae70b70f3b06eca9de',
-      agent: false  // create a new agent just for this one request
+      agent: false
     }, (res) => {
       var body='';
       res.on('data', (chunk)=>{
         body+=chunk;
       });
       res.on('end', ()=>{
-        console.info(body);
+        body=JSON.parse(body);
         if(body){
-          resolve(JSON.parse(body));
+          resolve({
+            name: body.data.nameDisplay,
+            style: body.data.style.name,
+            category: body.data.style.category.name,
+            description: body.data.style.description
+          });
         } else {
-          resolve();
+          resolve({});
         }
       });
       res.on('error', (err)=>{
+        console.log(err);
         reject(err);
       });
     });
