@@ -2,9 +2,10 @@ service: awsBeerJS
 
 provider:
   name: aws
-  region: us-east-1
+  profile: enlink
+  region: us-east-2
   runtime: nodejs6.10
-  stage: dev
+  stage: test
   environment:
     DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
   iamRoleStatements:
@@ -17,7 +18,9 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
-
+  apiKeys:
+    - myFirstKey
+    - ${self:provider.stage}-myFirstKey
 functions:
   create:
     handler: handler.create
@@ -26,6 +29,7 @@ functions:
           path: todo
           method: post
           cors: true
+          private: true
 
   read:
     handler: handler.get
